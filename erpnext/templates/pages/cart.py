@@ -2,7 +2,7 @@
 # License: GNU General Public License v3. See license.txt
 
 no_cache = 1
-
+import frappe
 from aetesis.e_commerce.shopping_cart.cart import get_cart_quotation
 
 
