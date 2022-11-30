@@ -61,13 +61,6 @@ class Customer(TransactionBase):
 
 			new_customer_name = "{0} - {1}".format(self.customer_name, cstr(count))
 
-			msgprint(
-				_("Changed customer name to '{}' as '{}' already exists.").format(
-					new_customer_name, self.customer_name
-				),
-				title=_("Note"),
-				indicator="yellow",
-			)
 
 			return new_customer_name
 
