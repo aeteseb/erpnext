@@ -234,7 +234,7 @@ def get_customers_suppliers(doctype, user):
 	has_customer_field = meta.has_field(customer_field_name)
 	has_supplier_field = meta.has_field("supplier")
 
-	if has_common(["Supplier", "Customer"], frappe.get_roles(user)):
+	if has_common(["Supplier", "Customer", "Website Customer"], frappe.get_roles(user)):
 		contacts = frappe.db.sql(
 			"""
 			select
