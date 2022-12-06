@@ -8,5 +8,6 @@ from aetesis.e_commerce.shopping_cart.cart import get_cart_quotation
 
 def get_context(context):
 	context.body_class = "product-page"
-	print(get_cart_quotation())
-	context.update(get_cart_quotation())
+	quotation = get_cart_quotation()
+	print('Context got quotation:', quotation)
+	context.update(quotation)
