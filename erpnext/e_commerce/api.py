@@ -6,6 +6,7 @@ import json
 
 import frappe
 from frappe.utils import cint
+from frappe import _
 
 from erpnext.e_commerce.product_data_engine.filters import ProductFiltersBuilder
 from erpnext.e_commerce.product_data_engine.query import ProductQuery
@@ -66,6 +67,10 @@ def get_product_filter_data(query_args=None):
 	if discounts:
 		filter_engine = ProductFiltersBuilder()
 		filters["discount_filters"] = filter_engine.get_discount_filters(discounts)
+	
+	if result["items"]:
+		for item in result["items"]:
+			item.web_item_name = _(item.web_item_name)
 
 	return {
 		"items": result["items"] or [],
