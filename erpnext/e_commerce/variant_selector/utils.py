@@ -1,5 +1,6 @@
 import frappe
 from frappe.utils import cint
+import frappe.utils.logger
 
 from erpnext.e_commerce.doctype.e_commerce_settings.e_commerce_settings import (
 	get_shopping_cart_settings,
@@ -8,6 +9,8 @@ from erpnext.e_commerce.shopping_cart.cart import _set_price_list
 from erpnext.e_commerce.variant_selector.item_variants_cache import ItemVariantsCacheManager
 from erpnext.utilities.product import get_price
 
+frappe.utils.logger.set_log_level("DEBUG")
+logger = frappe.logger("aetesis.debug", allow_site=True, file_count=50)
 
 def get_item_codes_by_attributes(attribute_filters, template_item_code=None):
 	items = []
@@ -134,9 +137,10 @@ def get_next_attribute_and_values(item_code, selected_attributes):
 		if selected_attribute:
 			# already selected attribute values are valid options
 			valid_options_for_attributes[a].add(selected_attribute)
-	
+	logger.debug(f'Item code is {item_code}')
 	website_variants = frappe.get_doc('Website Item', {"item_code": item_code}).variant_details
 	published_variants = set(map(lambda var: var.item_code if var.published else None, website_variants))
+	logger.debug(f'published variants are {published_variants}')
 	for row in item_variants_data:
 		item_code, attribute, attribute_value = row
 		if (
@@ -146,7 +150,8 @@ def get_next_attribute_and_values(item_code, selected_attributes):
 			and attribute in attribute_list
 		):
 			valid_options_for_attributes[attribute].add(attribute_value)
-
+	print(valid_options_for_attributes, filtered_items, published_variants)
+	logger.debug(f'valid options are {valid_options_for_attributes} and filtered items are {filtered_items}')
 	optional_attributes = item_cache.get_optional_attributes()
 	exact_match = []
 	# search for exact match if all selected attributes are required attributes
