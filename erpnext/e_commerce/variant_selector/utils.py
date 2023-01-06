@@ -134,11 +134,14 @@ def get_next_attribute_and_values(item_code, selected_attributes):
 		if selected_attribute:
 			# already selected attribute values are valid options
 			valid_options_for_attributes[a].add(selected_attribute)
-
+	
+	website_variants = frappe.get_doc('Website Item', {"item_code": item_code}).variant_details
+	published_variants = set(map(lambda var: var.item_code if var.published else None, website_variants))
 	for row in item_variants_data:
 		item_code, attribute, attribute_value = row
 		if (
 			item_code in filtered_items
+			and item_code in published_variants
 			and attribute not in selected_attributes
 			and attribute in attribute_list
 		):
