@@ -8,8 +8,9 @@ sudo apt update && sudo apt install redis-server libcups2-dev
 
 pip install frappe-bench
 
+githubbranch=${GITHUB_BASE_REF:-${GITHUB_REF##*/}}
 frappeuser=${FRAPPE_USER:-"frappe"}
-frappebranch=${FRAPPE_BRANCH:-${GITHUB_BASE_REF:-${GITHUB_REF##*/}}}
+frappebranch=${FRAPPE_BRANCH:-$githubbranch}
 
 git clone "https://github.com/${frappeuser}/frappe" --branch "${frappebranch}" --depth 1
 bench init --skip-assets --frappe-path ~/frappe --python "$(which python)" frappe-bench
@@ -41,12 +42,17 @@ fi
 
 
 install_whktml() {
-    wget -O /tmp/wkhtmltox.tar.xz https://github.com/frappe/wkhtmltopdf/raw/master/wkhtmltox-0.12.3_linux-generic-amd64.tar.xz
-    tar -xf /tmp/wkhtmltox.tar.xz -C /tmp
-    sudo mv /tmp/wkhtmltox/bin/wkhtmltopdf /usr/local/bin/wkhtmltopdf
-    sudo chmod o+x /usr/local/bin/wkhtmltopdf
+    if [ "$(lsb_release -rs)" = "22.04" ]; then
+        wget -O /tmp/wkhtmltox.deb https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
+        sudo apt install /tmp/wkhtmltox.deb
+    else
+        echo "Please update this script to support wkhtmltopdf for $(lsb_release -ds)"
+        exit 1
+    fi
 }
 install_whktml &
+wkpid=$!
+
 
 cd ~/frappe-bench || exit
 
@@ -55,10 +61,12 @@ sed -i 's/schedule:/# schedule:/g' Procfile
 sed -i 's/socketio:/# socketio:/g' Procfile
 sed -i 's/redis_socketio:/# redis_socketio:/g' Procfile
 
-bench get-app payments
+bench get-app payments --branch ${githubbranch%"-hotfix"}
 bench get-app erpnext "${GITHUB_WORKSPACE}"
 
 if [ "$TYPE" == "server" ]; then bench setup requirements --dev; fi
+
+wait $wkpid
 
 bench start &> bench_run_logs.txt &
 CI=Yes bench build --app frappe &

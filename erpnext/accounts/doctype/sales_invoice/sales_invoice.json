@@ -32,9 +32,6 @@
   "cost_center",
   "dimension_col_break",
   "project",
-  "column_break_27",
-  "campaign",
-  "source",
   "currency_and_price_list",
   "currency",
   "conversion_rate",
@@ -61,12 +58,13 @@
   "total",
   "net_total",
   "taxes_section",
+  "tax_category",
   "taxes_and_charges",
   "column_break_38",
   "shipping_rule",
-  "incoterm",
   "column_break_55",
-  "tax_category",
+  "incoterm",
+  "named_place",
   "section_break_40",
   "taxes",
   "section_break_43",
@@ -202,7 +200,9 @@
   "more_information",
   "status",
   "inter_company_invoice_reference",
+  "campaign",
   "represents_company",
+  "source",
   "customer_group",
   "col_break23",
   "is_internal_customer",
@@ -1775,6 +1775,8 @@
    "width": "50%"
   },
   {
+   "fetch_from": "sales_partner.commission_rate",
+   "fetch_if_empty": 1,
    "fieldname": "commission_rate",
    "fieldtype": "Float",
    "hide_days": 1,
@@ -2081,10 +2083,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "column_break_27",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "column_break_52",
    "fieldtype": "Column Break"
   },
@@ -2122,6 +2120,12 @@
    "fieldtype": "Link",
    "label": "Incoterm",
    "options": "Incoterm"
+  },
+  {
+   "depends_on": "incoterm",
+   "fieldname": "named_place",
+   "fieldtype": "Data",
+   "label": "Named Place"
   }
  ],
  "icon": "fa fa-file-text",
@@ -2134,11 +2138,10 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2022-12-05 16:18:14.532114",
+ "modified": "2023-03-13 11:43:15.883055",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Sales Invoice",
- "name_case": "Title Case",
  "naming_rule": "By \"Naming Series\" field",
  "owner": "Administrator",
  "permissions": [
