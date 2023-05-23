@@ -11,7 +11,6 @@ from frappe.contacts.address_and_contact import (
 	delete_contact_and_address,
 	load_address_and_contact,
 )
-from frappe.desk.reportview import build_match_conditions, get_filters_cond
 from frappe.model.mapper import get_mapped_doc
 from frappe.model.naming import set_name_by_naming_series, set_name_from_naming_options
 from frappe.model.utils.rename_doc import update_linked_doctypes
@@ -438,50 +437,6 @@ def get_nested_links(link_doctype, link_name, ignore_permissions=False):
 	return links
 
 
-@frappe.whitelist()
-@frappe.validate_and_sanitize_search_inputs
-def get_customer_list(doctype, txt, searchfield, start, page_len, filters=None):
-	from frappe.utils.deprecations import deprecation_warning
-
-	from erpnext.controllers.queries import get_fields
-
-	deprecation_warning(
-		"`get_customer_list` is deprecated and will be removed in version 15. Use `erpnext.controllers.queries.customer_query` instead."
-	)
-
-	fields = ["name", "customer_name", "customer_group", "territory"]
-
-	if frappe.db.get_default("cust_master_name") == "Customer Name":
-		fields = ["name", "customer_group", "territory"]
-
-	fields = get_fields("Customer", fields)
-
-	match_conditions = build_match_conditions("Customer")
-	match_conditions = "and {}".format(match_conditions) if match_conditions else ""
-
-	if filters:
-		filter_conditions = get_filters_cond(doctype, filters, [])
-		match_conditions += "{}".format(filter_conditions)
-
-	return frappe.db.sql(
-		"""
-		select %s
-		from `tabCustomer`
-		where docstatus < 2
-			and (%s like %s or customer_name like %s)
-			{match_conditions}
-		order by
-			case when name like %s then 0 else 1 end,
-			case when customer_name like %s then 0 else 1 end,
-			name, customer_name limit %s, %s
-		""".format(
-			match_conditions=match_conditions
-		)
-		% (", ".join(fields), searchfield, "%s", "%s", "%s", "%s", "%s", "%s"),
-		("%%%s%%" % txt, "%%%s%%" % txt, "%%%s%%" % txt, "%%%s%%" % txt, start, page_len),
-	)
-
-
 def check_credit_limit(customer, company, ignore_outstanding_sales_order=False, extra_amount=0):
 	credit_limit = get_credit_limit(customer, company)
 	if not credit_limit:
@@ -655,11 +610,15 @@ def get_credit_limit(customer, company):
 
 		if not credit_limit:
 			customer_group = frappe.get_cached_value("Customer", customer, "customer_group")
-			credit_limit = frappe.db.get_value(
+
+			result = frappe.db.get_values(
 				"Customer Credit Limit",
 				{"parent": customer_group, "parenttype": "Customer Group", "company": company},
-				"credit_limit",
+				fieldname=["credit_limit", "bypass_credit_limit_check"],
+				as_dict=True,
 			)
+			if result and not result[0].bypass_credit_limit_check:
+				credit_limit = result[0].credit_limit
 
 	if not credit_limit:
 		credit_limit = frappe.get_cached_value("Company", company, "credit_limit")
